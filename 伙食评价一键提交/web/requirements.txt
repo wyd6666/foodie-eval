@@ -1,0 +1,10 @@
+# 网页版真正需要的只有 requests
+requests>=2.28
+
+# cryptography 是可选的：装了算 AES 快一点（约 0.05ms），
+# 没装会自动用脚本里内置的纯 Python AES 实现（约 1ms），功能完全一样。
+# 如果构建时卡在这里，把它注释掉就行。
+cryptography>=3.4
+
+# PyYAML 只有 40_ui_click.py（uiautomator2 那个脚本）需要，网页版用不到，
+# 所以不放进来 —— 它能省下一点构建时间。

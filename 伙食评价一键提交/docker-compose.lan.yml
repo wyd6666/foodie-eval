@@ -1,0 +1,56 @@
+# 局域网部署专用 —— 只需要改一行：HQHS_PASSWORD
+#
+# 用法：
+#   1Panel → 容器 → 编排 → 创建编排 → 粘贴本文件内容 → 改密码 → 确认
+#
+# 部署完访问： http://服务器内网IP:8080
+# 例：http://192.168.1.100:8080
+#
+# 不需要：域名、证书、反向代理、公网 IP、端口映射
+
+services:
+  hqhs-eval:
+    build:
+      # context 决定去哪找 web/ scripts/ Dockerfile。
+      # 「.」= 编排文件所在目录。如果你是用 1Panel「粘贴内容」创建的编排，
+      # 那 . 指的是 1Panel 自己的目录，里面没有源码 → 构建出来还是旧镜像。
+      # 这种情况必须用绝对路径指定源码位置，或者在 .env 里写：
+      #   HQHS_SRC=/opt/1panel/apps/hqhs/hqhs-eval
+      context: ${HQHS_SRC:-.}
+      args:
+        PIP_INDEX: https://pypi.tuna.tsinghua.edu.cn/simple
+        BASE_IMAGE: python:3.11-slim
+    # 镜像名带版本号：换新包后这个标签会变，docker compose 发现本地没有就会自动构建。
+    # 如果写成固定标签（如 hqhs-eval:lan），up -d 看到旧镜像存在就直接用了，永远不更新。
+    image: hqhs-eval:5.7.4
+    container_name: hqhs-eval
+    restart: unless-stopped
+
+    # 局域网内任何设备都能访问（不是 127.0.0.1）
+    ports:
+      - "8080:8080"
+
+    environment:
+      # ↓↓↓ 只改这一行 ↓↓↓
+      HQHS_PASSWORD: "改成你的密码"
+      # ↑↑↑ 随便设一个，别留空 ↑↑↑
+
+      TZ: Asia/Shanghai
+
+    # 容器内以 uid 1000 运行。如果宿主机上的 data 目录属主是 root，
+    # 日志和台账会写不进去（报 Permission denied），先执行：
+    #   sudo chown -R 1000:1000 ./data
+    # 实在不想管权限，就把下面这行取消注释（以 root 运行，安全性差一点）
+    # user: "0:0"
+
+    volumes:
+      # 台账和日志
+      - ./data:/app/out
+      # 评价服务器地址：网页里保存会写回这个文件；直接改文件也即时生效
+      - ./eval_config.json:/app/eval_config.json
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

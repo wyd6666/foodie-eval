@@ -1,0 +1,143 @@
+{
+  "time": "2026-10-28 19:57:29",
+  "host": "sd.example.gov.cn",
+  "dry_run": true,
+  "status_only": false,
+  "summary": {
+    "ok": 0,
+    "skip": 13,
+    "fail": 0
+  },
+  "results": [
+    {
+      "idx": 1,
+      "name": "穆*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:07 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:25"
+    },
+    {
+      "idx": 2,
+      "name": "姚*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:08 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:25"
+    },
+    {
+      "idx": 3,
+      "name": "张*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:09 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:25"
+    },
+    {
+      "idx": 4,
+      "name": "黄*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:10 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:26"
+    },
+    {
+      "idx": 5,
+      "name": "叶*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:11 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:26"
+    },
+    {
+      "idx": 6,
+      "name": "杜*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:12 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:27"
+    },
+    {
+      "idx": 7,
+      "name": "李*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:13 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:27"
+    },
+    {
+      "idx": 8,
+      "name": "张*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:14 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:27"
+    },
+    {
+      "idx": 9,
+      "name": "吴*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:15 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:28"
+    },
+    {
+      "idx": 10,
+      "name": "陈*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:16 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:28"
+    },
+    {
+      "idx": 11,
+      "name": "董*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:17 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:29"
+    },
+    {
+      "idx": 12,
+      "name": "牛*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:18 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:29"
+    },
+    {
+      "idx": 13,
+      "name": "门*",
+      "userName": "3702**********1234",
+      "status": "SKIP",
+      "msg": "今天 02:19:19 已交过（本地台账）",
+      "dept": "",
+      "questions": 0,
+      "at": "19:57:29"
+    }
+  ]
+}

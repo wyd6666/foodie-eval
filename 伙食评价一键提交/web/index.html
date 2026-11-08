@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>伙食评价 · 一键提交</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#fff; --line:#e3e8ef; --ink:#1c2532; --sub:#667085;
+    --brand:#2563eb; --brand-d:#1d4ed8; --ok:#0f9d58; --skip:#8a94a6; --fail:#d93025;
+    --ok-bg:#e6f4ea; --skip-bg:#eef1f6; --fail-bg:#fce8e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:21px;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+  h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--brand)}
+  .sub{color:var(--sub);font-size:13px;margin-bottom:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .tag{font-size:11.5px;padding:2px 8px;border-radius:99px;font-weight:600}
+  .tag-tls{background:var(--ok-bg);color:var(--ok)}
+  .tag-plain{background:#fff8e6;color:#7a5b00}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px;
+        box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{font-size:14px;margin:0 0 12px;color:var(--sub);font-weight:600;letter-spacing:.3px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type=text],input[type=password],textarea{width:100%;border:1px solid var(--line);border-radius:9px;
+        padding:10px 12px;font:inherit;color:var(--ink);background:#fff;outline:none}
+  input:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  textarea{min-height:170px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.7}
+  .hint{color:var(--sub);font-size:12.5px;margin-top:8px}
+  .hint code{background:#f0f3f8;padding:1px 5px;border-radius:4px;font-size:12px}
+  button{border:0;border-radius:9px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer;
+         transition:.15s;white-space:nowrap}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover:not(:disabled){background:var(--brand-d)}
+  .btn-primary.pulse{animation:pulse .9s ease-in-out 4}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,99,235,.55)}
+                   70%{box-shadow:0 0 0 13px rgba(37,99,235,0)}
+                   100%{box-shadow:0 0 0 0 rgba(37,99,235,0)}}
+  .btn-ghost{background:#eef1f6;color:var(--ink)}
+  .btn-ghost:hover:not(:disabled){background:#e3e8ef}
+  .drop{border:2px dashed var(--line);border-radius:11px;padding:22px;text-align:center;color:var(--sub);
+        cursor:pointer;transition:.15s;background:#fafbfd}
+  .drop:hover,.drop.over{border-color:var(--brand);background:#f2f6ff;color:var(--brand)}
+  .drop b{color:var(--ink)}
+  .bar{height:7px;background:#eef1f6;border-radius:99px;overflow:hidden;margin:14px 0 8px}
+  .bar > i{display:block;height:100%;width:0;background:var(--brand);border-radius:99px;transition:width .25s}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .stat{flex:1;min-width:110px;background:#fafbfd;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .stat b{display:block;font-size:22px;line-height:1.25}
+  .stat span{color:var(--sub);font-size:12.5px}
+  .stat.ok b{color:var(--ok)} .stat.skip b{color:var(--skip)} .stat.fail b{color:var(--fail)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-weight:600;font-size:12.5px;background:#fafbfd;position:sticky;top:0}
+  tbody tr:hover{background:#fafbfd}
+  .badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-skip{background:var(--skip-bg);color:var(--skip)}
+  .b-fail{background:var(--fail-bg);color:var(--fail)}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--sub)}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1c2532;color:#fff;
+         padding:11px 20px;border-radius:10px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+  .toast.show{opacity:1;bottom:38px}
+  .warn{background:#fff8e6;border:1px solid #ffe1a8;color:#7a5b00;border-radius:9px;padding:10px 13px;font-size:13px;margin-top:10px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;border:1px solid #c7dbff;
+        color:var(--brand-d);border-radius:99px;padding:4px 6px 4px 12px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .chip .use{cursor:pointer;border:0;background:transparent;color:inherit;font:inherit;padding:0}
+  .chip .use:hover{text-decoration:underline}
+  .chip .cp{cursor:pointer;border:0;background:#dbe7ff;color:var(--brand-d);border-radius:99px;
+            padding:2px 9px;font-size:12px;font-family:inherit}
+  .chip .cp:hover{background:#c7dbff}
+  .interval-box{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);
+                background:#fafbfd;border:1px solid var(--line);border-radius:9px;padding:5px 10px}
+  .interval-box input{width:60px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;
+                      font:inherit;font-size:13.5px;text-align:center;outline:none;background:#fff;color:var(--ink)}
+  .interval-box input:focus{border-color:var(--brand);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+  .ta-wrap{position:relative}
+  .ta-cover{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+            background:rgba(250,251,253,.94);border:1px solid var(--line);border-radius:9px;
+            color:var(--sub);font-size:13.5px;cursor:text;user-select:none;backdrop-filter:blur(3px)}
+  .ta-cover b{color:var(--ink);margin-right:6px}
+  .ta-wrap.masked .ta-cover{display:flex}
+  .ta-wrap.masked textarea{color:transparent;text-shadow:0 0 9px rgba(28,37,50,.5)}
+  .peek{cursor:pointer;border-bottom:1px dashed #c3cede;padding-bottom:1px;transition:.12s}
+  .peek:hover{color:var(--brand);border-bottom-color:var(--brand)}
+  .peek.revealed{border-bottom-color:transparent;color:var(--ink)}
+  .hidden{display:none!important}
+  /* 登录层 */
+  #login{position:fixed;inset:0;background:#eef2f8;display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  #login .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px 24px;width:100%;max-width:360px;
+              box-shadow:0 6px 24px rgba(16,24,40,.08)}
+  #login h2{margin:0 0 6px;font-size:18px}
+  #login p{margin:0 0 18px;color:var(--sub);font-size:13px}
+  #login .err{color:var(--fail);font-size:13px;min-height:20px;margin-top:8px}
+  @media(max-width:600px){
+    .wrap{padding:16px 12px 50px}
+    /* 小屏隐藏「说明」列 —— 之前误藏了第 5 列，那是「状态」，最该看的 */
+    th:nth-child(6),td:nth-child(6){display:none}
+    th:nth-child(3),td:nth-child(3){width:auto}
+  }
+</style>
+</head>
+<body>
+
+<!-- 登录层 -->
+<div id="login" class="hidden">
+  <div class="box">
+    <h2>伙食评价 · 一键提交</h2>
+    <p id="loginTip">请输入访问密码</p>
+    <input type="password" id="pw" placeholder="访问密码" autocomplete="one-time-code" inputmode="numeric">
+    <div class="err" id="loginErr"></div>
+    <button class="btn-primary" id="btnLogin" style="width:100%;margin-top:10px">登录</button>
+    <div class="hint" style="text-align:center">密码由部署者启动服务时设置</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="connBar" class="hidden" style="background:#fce8e6;border:1px solid #f5c2bd;color:#a0210f;
+       border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;line-height:1.7">
+    <b>连不上本地服务</b><div id="connMsg" style="margin-top:4px"></div>
+  </div>
+  <h1><span class="dot"></span>伙食评价 · 一键提交</h1>
+  <div class="sub">
+    <span>粘贴或上传名单，点一下自动完成所有人的伙食满意度测评</span>
+    <span class="tag hidden" id="tlsTag"></span>
+    <span class="tag hidden" id="verTag" style="background:#eef1f6;color:#667085"></span>
+  </div>
+
+  <!-- 服务器地址 -->
+  <div class="card" id="hostCard">
+    <h2>① 服务器地址</h2>
+    <div class="row">
+      <input type="text" id="host" placeholder="例如 sd.example.gov.cn 或 10.1.2.3:8080" style="flex:1;min-width:240px">
+      <button class="btn-ghost" id="saveHost">保存</button>
+    </div>
+    <div class="hint">填手机上 App 登录页里那个地址，<b>不要</b>带 <code>http://</code>，也不要带 <code>/api/</code>。只用填一次。</div>
+    <div class="row hidden" id="presetRow" style="margin-top:9px">
+      <span class="hint" style="margin:0">常用地址：</span>
+    </div>
+  </div>
+
+  <!-- 名单 -->
+  <div class="card">
+    <h2>② 名单</h2>
+    <div class="drop" id="drop">
+      <b>点击选择文件</b> &nbsp;或把文件拖到这里<br>
+      <span style="font-size:12.5px">支持 txt / csv / 任意文本文件</span>
+    </div>
+    <input type="file" id="file" class="hidden" accept=".txt,.csv,text/plain">
+    <div style="margin:14px 0 8px;color:var(--sub);font-size:13px">或者直接粘贴：</div>
+    <div class="ta-wrap" id="taWrap">
+      <textarea id="text" placeholder="张三 370101199001011234 密码&#10;李四=370101199001011235=密码&#10;370101199001011236,密码,王五"></textarea>
+      <div class="ta-cover" id="taCover"><b>名单已隐藏</b>点这里编辑 / 查看</div>
+    </div>
+    <div class="hint">一行一个人。三种写法都认：<code>姓名 账号 密码</code>、<code>账号=密码=姓名</code>、<code>账号,密码,姓名</code></div>
+    <div class="hint" id="lineInfo"></div>
+    <div class="hint" style="color:#8a6d3b">名单只存在这个页面里，刷新或关页就没了（不会留在浏览器，也不上传到别处）。</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn-ghost" id="btnParse">预览解析出来的名单</button>
+      <span class="hint" style="margin:0">登录前先看一眼，确认「账号」那一列对不对</span>
+    </div>
+    <div id="parseBox" class="hidden" style="margin-top:10px">
+      <div id="parseOut" class="mono" style="background:#fafbfd;border:1px solid var(--line);
+           border-radius:9px;padding:10px 12px;max-height:260px;overflow:auto"></div>
+      <div class="hint">姓名 / 账号 / 密码默认打码，<b>点一下就显示原文</b>，再点缩回去。</div>
+    </div>
+  </div>
+
+  <!-- 操作 -->
+  <div class="card">
+    <h2>③ 开始</h2>
+    <div class="row">
+      <button class="btn-ghost" id="btnDry">先预演（不提交）</button>
+      <button class="btn-primary" id="btnRun">直接提交</button>
+      <label class="interval-box" title="每个账号之间等待多少秒；0 = 不等待（最快），填 30~50 更接近人工操作">
+        间隔
+        <input type="number" id="interval" value="0" min="0" max="60" step="0.5" inputmode="decimal">
+        秒
+      </label>
+      <label style="font-size:13px;color:var(--sub);display:flex;align-items:center;gap:6px;margin-left:auto">
+        <input type="checkbox" id="force"> 忽略「今天已交过」
+      </label>
+      <button class="btn-ghost" id="btnDiag" title="出问题时先点这个">环境自检</button>
+    </div>
+    <div id="diagBox" class="hidden" style="margin-top:12px">
+      <pre id="diagOut" class="mono" style="background:#fafbfd;border:1px solid var(--line);border-radius:9px;
+           padding:12px;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow:auto"></pre>
+      <div class="hint">把上面这段整段复制给维护者，能直接定位问题。</div>
+    </div>
+    <div class="hint" style="margin-top:8px">
+      间隔 0 = 几个账号同时发（最快）；填 30~50 秒会改成一个个来，节奏更接近人工点击，
+      每次等待还会上下浮动 20%。
+    </div>
+    <div class="warn hidden" id="ledgerWarn"></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="mono" id="progress">等待开始…</div>
+    <div class="stats">
+      <div class="stat ok"><b id="sOk">0</b><span>成功</span></div>
+      <div class="stat skip"><b id="sSkip">0</b><span>跳过（已交过）</span></div>
+      <div class="stat fail"><b id="sFail">0</b><span>失败</span></div>
+    </div>
+  </div>
+
+  <!-- 结果 -->
+  <div class="card">
+    <h2 style="display:flex;align-items:center;gap:12px">
+      ④ 结果
+      <label style="font-weight:400;font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:6px;margin-left:auto;cursor:pointer">
+        <input type="checkbox" id="showAll"> 显示完整姓名 / 机构
+      </label>
+    </h2>
+    <div class="hint" style="margin:-4px 0 10px">姓名和机构默认打码，点一下某一格可以单独展开。</div>
+    <div style="max-height:460px;overflow:auto">
+      <table>
+        <thead><tr><th style="width:44px">#</th><th style="width:110px">姓名</th><th style="width:150px">账号</th><th>机构</th><th>状态</th><th>说明</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="6" style="color:var(--sub);padding:18px 10px">还没有开始</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener('error', function(e){
+  try{
+    var bar = document.getElementById('connBar'), msg = document.getElementById('connMsg');
+    if (bar && msg){ bar.classList.remove('hidden');
+      msg.textContent = '页面脚本出错：' + (e.message || e) + '。请刷新页面；如果一直这样，把这句话发给维护者。'; }
+  }catch(_){}
+});
+
+const FRONT_VERSION = '5.7.4';     // 改了前端就同步改这里，和 server.py 的 VERSION 对得上才算更新完整
+
+const $ = id => document.getElementById(id);
+let running = false, ledgerCount = 0;
+
+/* 把浏览器的 "Failed to fetch" 翻译成人话 */
+function explainFetchError(e){
+  if (location.protocol === 'file:') {
+    return '你打开的是本地文件（地址栏以 file:// 开头），这种方式调不了接口。'
+         + '请先双击 网页版.bat 或运行 ./网页版.sh 启动服务，再访问 http://127.0.0.1:8080';
+  }
+  if (location.protocol === 'https:') {
+    return '页面是 HTTPS，但请求没成功。两种可能：① 服务本身是 HTTP，被浏览器按「混合内容」拦了；'
+         + '② 用的是自签证书，证书还没被信任。先点浏览器的「高级 → 继续前往」，'
+         + '或者直接用 http:// 地址打开。';
+  }
+  const m = String((e && e.message) || e);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) {
+    return '请求没发出去：服务窗口可能已经关了，或端口不对。'
+         + '确认那个黑窗口还开着，地址栏是 http://127.0.0.1:8080';
+  }
+  return m;
+}
+
+function showConnBar(msg){
+  const bar = $('connBar');
+  if (!bar) return;
+  bar.classList.remove('hidden');
+  const el = $('connMsg');
+  if (el) el.textContent = msg;
+}
+function hideConnBar(){
+  const bar = $('connBar');
+  if (bar) bar.classList.add('hidden');
+}
+
+async function callAPI(url, opts){
+  try{
+    return await fetch(url, opts);
+  }catch(e){
+    const msg = explainFetchError(e);
+    showConnBar(msg);
+    throw new Error(msg);
+  }
+}
+
+/* 安全绑定：元素不存在只警告，不让整个脚本挂掉 */
+function on(id, ev, fn){
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(ev, fn);
+  else console.warn('[hqhs] 页面缺少元素 #' + id + '，已跳过绑定');
+  return el;
+}
+
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+/* 复制到剪贴板：https/localhost 用新 API，http 局域网退回 execCommand */
+async function copyText(t){
+  try{
+    if (navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(t);
+      toast('已复制：' + t); return true;
+    }
+    throw new Error('no clipboard api');
+  }catch(e){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('已复制：' + t); return true;
+    }catch(e2){
+      toast('复制失败，请手动选中这段地址：' + t);
+      return false;
+    }
+  }
+}
+
+/* 浏览器里记一份用过的地址（后端配置只读时也能累积） */
+function hostHistory(){
+  try{
+    const a = JSON.parse(localStorage.getItem('hqhs_hosts') || '[]');
+    return Array.isArray(a) ? a.filter(x => typeof x === 'string' && x) : [];
+  }catch(e){ return []; }
+}
+function pushHost(h){
+  const a = hostHistory().filter(x => x !== h);
+  a.unshift(h);
+  const kept = a.slice(0, 8);
+  try{ localStorage.setItem('hqhs_hosts', JSON.stringify(kept)); }catch(e){}
+  return kept;
+}
+
+function presetList(serverList){
+  const out = [];
+  // 顺序：本次填的 > 浏览器历史 > 后端 presets
+  const cur = localStorage.getItem('hqhs_host');
+  if (cur) out.push(cur);
+  hostHistory().forEach(x => { if (x && !out.includes(x)) out.push(x); });
+  (serverList || []).forEach(x => { if (x && !out.includes(x)) out.push(x); });
+  return out.slice(0, 8);
+}
+
+function renderPresets(list){
+  const row = $('presetRow');
+  if (!row) return;
+  // 清掉旧胶囊（保留「常用地址：」那个 label）
+  [...row.querySelectorAll('.chip')].forEach(n => n.remove());
+  if (!list || !list.length) { row.classList.add('hidden'); return; }
+  row.classList.remove('hidden');
+  list.forEach(h => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    const use = document.createElement('button');
+    use.className = 'use'; use.type = 'button'; use.textContent = h;
+    use.title = '点击填入上面的输入框';
+    use.onclick = async () => {
+      $('host').value = h;
+      localStorage.setItem('hqhs_host', h);
+      pushHost(h);
+      renderPresets(presetList([h]));
+      try{
+        const r = await callAPI('api/config', {method:'POST', headers:{'Content-Type':'application/json'},
+                                      body: JSON.stringify({host: h})});
+        const d = await r.json();
+        toast(d.persisted === false
+          ? '已填入（仅本浏览器）：' + h
+          : '已填入并保存：' + h);
+      }catch(e){ toast('已填入，但保存失败：' + e.message); }
+    };
+    const cp = document.createElement('button');
+    cp.className = 'cp'; cp.type = 'button'; cp.textContent = '复制';
+    cp.onclick = (ev) => { ev.stopPropagation(); copyText(h); };
+    chip.appendChild(use); chip.appendChild(cp);
+    row.appendChild(chip);
+  });
+}
+
+function maskUser(u){
+  u = String(u || '');
+  if (u.length <= 2) return '*'.repeat(u.length);
+  if (u.length <= 4) return u[0] + '****';            // 太短，只留第一位
+  return u.slice(0, 2) + '****' + u.slice(-2);        // 前后各留两位
+}
+function esc(s){
+  return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function badge(st){
+  if(st==='OK')   return '<span class="badge b-ok">成功</span>';
+  if(st==='SKIP') return '<span class="badge b-skip">跳过</span>';
+  if(st==='FAIL') return '<span class="badge b-fail">失败</span>';
+  return '<span class="badge b-skip">进行中</span>';
+}
+
+/* ---------- 打码：默认看得到轮廓，点一下看全文 ---------- */
+let showAll = false;
+let lastResults = [];
+
+function maskPwd(s){
+  s = String(s || '');
+  if (!s) return '';
+  return '*'.repeat(Math.min(s.length, 10));
+}
+function maskName(s){
+  s = String(s || '');
+  if (s.length <= 1) return s;
+  return s[0] + '*'.repeat(Math.min(s.length - 1, 3));
+}
+function maskOrg(s){
+  s = String(s || '');
+  if (!s) return '';
+  if (s.length === 1) return '*';             // 单字直接遮住
+  return '****' + s.slice(-1);                // 只留最后一位
+}
+
+/* 一个可以点开的单元格 */
+function peekEl(text, maskFn, revealed, onToggle){
+  const span = document.createElement('span');
+  span.className = 'peek' + (revealed ? ' revealed' : '');
+  span.textContent = (showAll || revealed) ? text : maskFn(text);
+  span.title = (showAll || revealed) ? '' : '点击查看完整内容';
+  span.addEventListener('click', () => {
+    if (showAll) return;              // 已经全显示了就不用点
+    onToggle(!revealed);
+  });
+  return span;
+}
+
+/* 构建一行结果 */
+function buildRow(ev, i){
+  const tr = document.createElement('tr');
+  tr.dataset.i = i;
+
+  const td0 = document.createElement('td');
+  td0.textContent = ev.idx ?? (i + 1);
+  tr.appendChild(td0);
+
+  const tdName = document.createElement('td');
+  tdName.appendChild(peekEl(ev.name || '', maskName, !!ev._showName, v => {
+    ev._showName = v; redrawRow(i);
+  }));
+  tr.appendChild(tdName);
+
+  const tdUser = document.createElement('td');
+  tdUser.className = 'mono';
+  tdUser.appendChild(peekEl(ev.userName || '', maskUser, !!ev._showUser, v => {
+    ev._showUser = v; redrawRow(i);
+  }));
+  tr.appendChild(tdUser);
+
+  const tdOrg = document.createElement('td');
+  tdOrg.appendChild(peekEl(ev.dept || '', maskOrg, !!ev._showOrg, v => {
+    ev._showOrg = v; redrawRow(i);
+  }));
+  tr.appendChild(tdOrg);
+
+  const tdSt = document.createElement('td');
+  tdSt.innerHTML = badge(ev.status);
+  tr.appendChild(tdSt);
+
+  const tdMsg = document.createElement('td');
+  tdMsg.style.color = ev.status === 'FAIL' ? 'var(--fail)' : 'var(--sub)';
+  tdMsg.textContent = ev.msg || '';
+  tr.appendChild(tdMsg);
+
+  return tr;
+}
+
+function redrawRow(i){
+  const old = $('tbody').querySelector(`tr[data-i="${i}"]`);
+  if (!old) return;
+  old.replaceWith(buildRow(lastResults[i], i));
+}
+
+function redrawAll(){
+  const tb = $('tbody');
+  tb.innerHTML = '';
+  lastResults.forEach((ev, i) => tb.appendChild(buildRow(ev, i)));
+}
+
+/* ---------- 启动：先问状态 ---------- */
+async function boot(){
+  let st = {};
+  try{
+    st = await (await callAPI('api/state')).json();
+    hideConnBar();
+    applyAuthHint(st);
+  }catch(e){
+    showConnBar(e.message);
+    return;
+  }
+
+  // 服务器地址和登录无关，先渲染出来，方便随时看到 / 复制
+  renderPresets(presetList(st.presets));
+  if(!st.host && !$('host').value){
+    const local = localStorage.getItem('hqhs_host');
+    if (local) $('host').value = local;
+  }
+
+  if(st.need_login && !st.logged_in){
+    $('login').classList.remove('hidden');
+    $('pw').focus();
+    $('pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+    on('btnLogin', 'click', doLogin);
+    return;
+  }
+  $('login').classList.add('hidden');
+  afterLogin(st);
+}
+
+async function doLogin(){
+  const pw = $('pw').value;
+  if(!pw) return;
+  $('btnLogin').disabled = true;
+  $('loginErr').textContent = '';
+  try{
+    const r = await callAPI('api/login', {method:'POST', headers:{'Content-Type':'application/json'},
+                                         body: JSON.stringify({password: pw})});
+    const d = await r.json();
+    if(r.ok){
+      $('login').classList.add('hidden');
+      const st = await (await callAPI('api/state')).json();
+      afterLogin(st);
+      toast('登录成功');
+    }else{
+      $('loginErr').textContent = d.error || '登录失败';
+    }
+  }catch(e){ $('loginErr').textContent = '登录出错：'+e.message; }
+  finally{ $('btnLogin').disabled = false; }
+}
+
+function applyAuthHint(st){
+  const tip = $('loginTip'), pw = $('pw');
+  if (!tip || !pw) return;
+  if (st.auth_mode === 'totp') {
+    tip.textContent = '请输入手机上的 6 位动态码';
+    pw.placeholder = '6 位数字';
+    pw.maxLength = 6;
+    pw.setAttribute('inputmode', 'numeric');
+    pw.setAttribute('autocomplete', 'one-time-code');
+  } else if (st.auth_mode === 'both') {
+    tip.textContent = '输入访问密码，或手机上的 6 位动态码';
+    pw.placeholder = '密码 或 6 位动态码';
+    pw.maxLength = 64;
+    pw.removeAttribute('inputmode');
+  } else {
+    tip.textContent = '请输入访问密码';
+    pw.placeholder = '访问密码';
+    pw.maxLength = 64;
+    pw.removeAttribute('inputmode');
+  }
+}
+
+function afterLogin(st){
+  // 版本号：让「跑的是哪版」一眼可见
+  const vt = $('verTag');
+  if (st.version) {
+    vt.classList.remove('hidden');
+    const same = String(st.version).startsWith(FRONT_VERSION);
+    vt.textContent = 'v' + st.version
+      + (st.aes_backend ? ' · AES:' + st.aes_backend : '')
+      + (same ? '' : ' · 前端 ' + FRONT_VERSION + ' 不一致');
+    if (!same) {
+      // 后端和前端文件不是同一批 —— 说明更新时只覆盖了一部分文件
+      vt.style.background = '#fce8e6';
+      vt.style.color = '#d93025';
+      vt.title = '后端是 v' + st.version + '，前端是 ' + FRONT_VERSION
+               + '。说明容器里的文件只更新了一部分，建议重新覆盖全部文件后重建镜像。';
+    }
+  }
+  // 代码比进程新 = 改了文件没重启，这才是「脚本好了但网页还报错」的常见原因
+  if (st.stale) {
+    showConnBar('检测到程序文件已更新，但当前网页服务还在跑旧代码。'
+      + '请把那个命令行窗口关掉（Ctrl+C），重新双击 网页版.bat / 运行 ./网页版.sh。'
+      + '重启后这里会显示新的版本号 v' + (st.version || '?') + '。');
+  }
+  renderPresets(presetList(st.presets));
+  if(st.host) $('host').value = st.host;
+  ledgerCount = st.ledger_count || 0;
+  updateLedgerWarn();
+  const tag = $('tlsTag');
+  tag.classList.remove('hidden');
+  if(st.tls){ tag.className = 'tag tag-tls'; tag.textContent = 'HTTPS 已加密'; }
+  else { tag.className = 'tag tag-plain'; tag.textContent = 'HTTP 明文（仅限可信内网）'; }
+  if(st.need_host) $('host').focus();
+}
+
+function updateLedgerWarn(){
+  const w = $('ledgerWarn');
+  if(ledgerCount > 0){
+    w.classList.remove('hidden');
+    w.innerHTML = `今天已经有 <b>${ledgerCount}</b> 个人交过了。这些人会被自动跳过，不会重复提交。
+                   新人追加到名单里再交就行。确实要重交请勾选上面的复选框。`;
+  }else w.classList.add('hidden');
+}
+
+/* ---------- 保存 host ---------- */
+on('saveHost', 'click', async () => {
+  const host = $('host').value.trim();
+  if(!host) return toast('先填地址');
+  const r = await callAPI('api/config', {method:'POST', headers:{'Content-Type':'application/json'},
+                                        body: JSON.stringify({host})});
+  const d = await r.json();
+  if(d.ok){
+    $('host').value = d.host;
+    localStorage.setItem('hqhs_host', d.host);
+    pushHost(d.host);
+    renderPresets(presetList(d.presets || [d.host]));
+    toast(d.persisted === false
+      ? '已记住（仅本浏览器）：' + d.host + ' —— 服务器配置文件是只读的'
+      : '已保存：' + d.host);
+  }
+  else toast(d.error || '保存失败');
+});
+
+/* ---------- 文件 ---------- */
+on('drop', 'click', () => $('file').click());
+on('file', 'change', e => readFile(e.target.files[0]));
+['dragenter','dragover'].forEach(ev => $('drop').addEventListener(ev, e=>{
+  e.preventDefault(); $('drop').classList.add('over');
+}));
+['dragleave','drop'].forEach(ev => $('drop').addEventListener(ev, e=>{
+  e.preventDefault(); $('drop').classList.remove('over');
+}));
+$('drop').addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if(f) readFile(f); });
+function readFile(f){
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    $('text').value = String(rd.result||'').trim();
+    countLines();
+    setListMasked(true);          // 读进来就遮住，点一下才看
+    toast('已读入 ' + f.name);
+  };
+  rd.readAsText(f, 'utf-8');
+}
+/* 名单内容：编辑时看得见，不编辑时遮住 */
+function setListMasked(on){
+  const wrap = $('taWrap'), ta = $('text');
+  if (!wrap || !ta) return;
+  const hasContent = ta.value.trim() !== '';
+  wrap.classList.toggle('masked', !!on && hasContent);
+}
+function bindListMask(){
+  const wrap = $('taWrap'), cover = $('taCover'), ta = $('text');
+  if (!wrap || !cover || !ta) return;
+  ta.addEventListener('focus', () => setListMasked(false));
+  ta.addEventListener('blur',  () => setListMasked(true));
+  cover.addEventListener('click', () => { setListMasked(false); ta.focus(); });
+  // 页面刚打开时，如果已经有内容就遮住
+  setListMasked(true);
+}
+function countLines(){
+  const n = $('text').value.split('\n').filter(l=>l.trim()).length;
+  $('lineInfo').textContent = n ? `识别到 ${n} 行` : '';
+}
+on('text', 'input', countLines);
+
+/* ---------- 跑 ---------- */
+async function start(dry){
+  if(running) return;
+  const text = $('text').value.trim();
+  if(!text) return toast('先粘贴或上传名单');
+  const host = $('host').value.trim();
+  if(!host){ $('host').focus(); return toast('先填服务器地址'); }
+
+  const interval = Math.max(0, Math.min(60, parseFloat($('interval').value) || 0));
+  localStorage.setItem('hqhs_interval', String(interval));
+
+  if(!dry){
+    const n = text.split('\n').filter(l=>l.trim()).length;
+    let tip = `将向 ${host} 提交 ${n} 人的评价，确定吗？`;
+    if(interval > 0){
+      const est = Math.round((n - 1) * interval);
+      tip += `\n\n每个账号间隔 ${interval} 秒，预计用时约 `
+           + (est >= 60 ? (est / 60).toFixed(1) + ' 分钟' : est + ' 秒') + '。';
+    }
+    if(!confirm(tip)) return;
+  }
+
+  running = true;
+  window.onbeforeunload = () => '正在处理名单，关掉页面会中断，确定要离开吗？';
+  $('btnDry').disabled = $('btnRun').disabled = true;
+  $('tbody').innerHTML = '';
+  lastResults = [];
+  $('sOk').textContent = $('sSkip').textContent = $('sFail').textContent = '0';
+  $('bar').style.width = '0%';
+  $('progress').textContent = dry ? '预演中（不会提交）…' : '提交中…';
+
+  let total = 0, done = 0;
+  const counters = {ok:0, skip:0, fail:0};
+
+  try{
+    const resp = await callAPI('api/run', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text, dry, force: $('force').checked,
+                            concurrency: 3, interval})
+    });
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({error:'HTTP '+resp.status}));
+      throw new Error(err.error || ('HTTP '+resp.status));
+    }
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while(true){
+      const {value, done: fin} = await reader.read();
+      if(fin) break;
+      buf += dec.decode(value, {stream:true});
+      let idx;
+      while((idx = buf.indexOf('\n')) >= 0){
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx+1);
+        if(!line) continue;
+        let ev; try{ ev = JSON.parse(line); }catch(e){ continue; }
+        if(ev.type === 'start'){
+          total = ev.total;
+          $('progress').textContent = ev.interval > 0
+            ? `共 ${ev.total} 人，逐个提交（间隔 ${ev.interval} 秒），请耐心等…`
+            : `共 ${ev.total} 人，正在处理…`;
+        }else if(ev.type === 'item'){
+          done++;
+          counters[ev.status === 'OK' ? 'ok' : ev.status === 'SKIP' ? 'skip' : 'fail']++;
+          $('sOk').textContent = counters.ok;
+          $('sSkip').textContent = counters.skip;
+          $('sFail').textContent = counters.fail;
+          $('bar').style.width = total ? (done/total*100).toFixed(1)+'%' : '0%';
+          $('progress').textContent = `${done}/${total}`;
+          const rowIdx = lastResults.length;
+          lastResults.push(ev);
+          $('tbody').appendChild(buildRow(ev, rowIdx));
+        }else if(ev.type === 'done'){
+          const s = ev.summary || {};
+          $('progress').textContent = dry
+            ? `预演完成：能交 ${s.ok} 人｜今天已交 ${s.skip} 人｜有问题 ${s.fail} 人`
+            : `完成：交上了 ${s.ok} 人｜跳过 ${s.skip} 人｜失败 ${s.fail} 人`;
+          $('bar').style.width = '100%';
+          ledgerCount = ev.ledger || ledgerCount;
+          updateLedgerWarn();
+          if (dry) {
+            toast(`预演完成：能交 ${s.ok} 人（还没有真的提交）`);
+            // 预演通过就引导去点「直接提交」
+            const btn = $('btnRun');
+            if (s.ok > 0) {
+              $('progress').textContent += '　—— 这只是预演，点右边蓝色的「直接提交」才会真的交上去';
+              btn.classList.add('pulse');
+              setTimeout(()=>btn.classList.remove('pulse'), 4200);
+            } else if (s.fail > 0) {
+              $('progress').textContent += '　—— 没有人可以交，先看下面每行的失败原因';
+            } else {
+              $('progress').textContent += '　—— 今天都已经交过了，没有要做的';
+            }
+          } else {
+            toast(`完成，交上了 ${s.ok} 人`);
+          }
+        }
+      }
+    }
+    // 收尾：服务端最后一行若没带换行符，这里补处理，别把 done 事件丢了
+    if(buf.trim()){
+      try{
+        const ev = JSON.parse(buf.trim());
+        if(ev.type === 'done'){
+          const s2 = ev.summary || {};
+          $('sOk').textContent = s2.ok ?? counters.ok;
+          $('sSkip').textContent = s2.skip ?? counters.skip;
+          $('sFail').textContent = s2.fail ?? counters.fail;
+          $('progress').textContent = (dry ? '预演完成：能交 ' : '完成：交上了 ')
+            + (s2.ok ?? 0) + ' 人｜跳过 ' + (s2.skip ?? 0) + '｜失败 ' + (s2.fail ?? 0);
+          $('bar').style.width = '100%';
+        }
+      }catch(e){}
+    }
+  }catch(e){
+    $('progress').textContent = '出错：' + e.message;
+    toast('出错：' + e.message);
+    if(String(e.message).includes('未登录')) setTimeout(()=>location.reload(), 1200);
+  }finally{
+    running = false;
+    window.onbeforeunload = null;
+    $('btnDry').disabled = $('btnRun').disabled = false;
+  }
+}
+
+on('btnParse', 'click', async () => {
+  const text = $('text').value.trim();
+  if(!text) return toast('先粘贴或上传名单');
+  const box = $('parseBox'), out = $('parseOut');
+  box.classList.remove('hidden');
+  out.textContent = '解析中…';
+  try{
+    const d = await (await callAPI('api/parse', {method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({text})})).json();
+    if(d.error){ box.innerHTML = ''; out.textContent = d.error; return; }
+
+    out.innerHTML = '';
+    const head = document.createElement('div');
+    head.style.cssText = 'color:var(--sub);font-size:12.5px;margin-bottom:6px';
+    head.textContent = `共 ${d.total} 个账号`;
+    out.appendChild(head);
+
+    if(d.total){
+      const tb = document.createElement('table');
+      tb.style.cssText = 'width:100%;border-collapse:collapse;font-size:13px';
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr>'
+        + '<th style="text-align:left;padding:5px 8px;color:var(--sub);font-weight:600;width:40px">#</th>'
+        + '<th style="text-align:left;padding:5px 8px;color:var(--sub);font-weight:600">姓名</th>'
+        + '<th style="text-align:left;padding:5px 8px;color:var(--sub);font-weight:600">账号</th>'
+        + '<th style="text-align:left;padding:5px 8px;color:var(--sub);font-weight:600">密码</th>'
+        + '<th style="text-align:left;padding:5px 8px;color:var(--sub);font-weight:600">今天</th>'
+        + '</tr>';
+      tb.appendChild(thead);
+      const tbody = document.createElement('tbody');
+
+      (d.accounts || []).forEach((a, i) => {
+        const tr = document.createElement('tr');
+        tr.style.borderTop = '1px solid var(--line)';
+
+        const c0 = document.createElement('td');
+        c0.style.padding = '5px 8px';
+        c0.textContent = i + 1;
+        tr.appendChild(c0);
+
+        const cell = (text, maskFn) => {
+          const td = document.createElement('td');
+          td.style.padding = '5px 8px';
+          let revealed = false;
+          const sp = document.createElement('span');
+          sp.className = 'peek';
+          sp.textContent = maskFn(text);
+          sp.title = '点击显示原文';
+          sp.addEventListener('click', () => {
+            revealed = !revealed;
+            sp.textContent = revealed ? text : maskFn(text);
+            sp.classList.toggle('revealed', revealed);
+            sp.title = revealed ? '点击隐藏' : '点击显示原文';
+          });
+          td.appendChild(sp);
+          return td;
+        };
+
+        tr.appendChild(cell(a.name || '', maskName));
+        tr.appendChild(cell(a.userName || '', maskUser));
+        tr.appendChild(cell(a.passWord || '', maskPwd));
+
+        const cE = document.createElement('td');
+        cE.style.padding = '5px 8px';
+        cE.style.color = a.done_today ? 'var(--skip)' : 'var(--ok)';
+        cE.textContent = a.done_today ? '已交过' : '待交';
+        tr.appendChild(cE);
+
+        tbody.appendChild(tr);
+      });
+      tb.appendChild(tbody);
+      out.appendChild(tb);
+    }
+
+    if(d.bad && d.bad.length){
+      const w = document.createElement('div');
+      w.style.cssText = 'margin-top:8px;color:#8a6d3b;font-size:12.5px';
+      w.textContent = `有 ${d.bad.length} 行没解析出来：` +
+        d.bad.slice(0, 5).map(b => `第${b.line}行「${b.text}」`).join('；');
+      out.appendChild(w);
+    }
+
+
+  }catch(e){ out.textContent = '解析失败：' + e.message; }
+});
+
+on('btnDiag', 'click', async () => {
+  const box = $('diagBox'), out = $('diagOut');
+  box.classList.remove('hidden');
+  out.textContent = '自检中…';
+  try{
+    const r = await callAPI('api/diag');
+    const d = await r.json();
+    if(!r.ok){ out.textContent = '自检接口返回 ' + r.status + '：' + (d.error||''); return; }
+    const lines = [];
+    lines.push('Python      : ' + d.python);
+    lines.push('requests    : ' + (d.requests || '未安装'));
+    lines.push('cryptography: ' + (d.cryptography || '未安装') + '  (接口: ' + (d.cipher_api||'?') + ')');
+    lines.push('AES 自检    : ' + (d.aes || '失败'));
+    lines.push('服务器地址  : ' + (d.host || '未填'));
+    lines.push('连通性      : ' + (d.connect || '-'));
+    lines.push('今日台账    : ' + (d.ledger_today ?? 0) + ' 人');
+    lines.push('整体        : ' + (d.ok ? '✓ 正常' : '✗ 有问题'));
+    if(d.problems && d.problems.length){
+      lines.push(''); lines.push('问题:');
+      d.problems.forEach(x => lines.push('  - ' + x));
+    }
+    const le = d.last_error || {};
+    if(le.trace){
+      lines.push(''); lines.push('最近一次报错 ' + (le.at||'') + ':');
+      lines.push(le.trace.trimEnd());
+    }
+    out.textContent = lines.join('\n');
+  }catch(e){ out.textContent = '自检失败：' + e.message; }
+});
+
+on('showAll', 'change', (e) => {
+  showAll = e.target.checked;
+  redrawAll();
+});
+
+on('btnDry', 'click', () => start(true));
+on('btnRun', 'click', () => start(false));
+
+bindListMask();   // 名单框：编辑时可见，失焦就遮住
+boot();
+</script>
+</body>
+</html>

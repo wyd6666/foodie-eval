@@ -1,0 +1,19 @@
+{
+  "_说明": "只改 host：填你手机 App 登录页里那个服务器地址，不要带 http:// 也不要带 /api/",
+  "scheme": "http",
+  "host": "[填服务器地址 例如 sd.example.gov.cn 或 10.1.2.3:8080]",
+  "presets": [],
+  "_presets说明": "把常用地址填进 presets 数组，网页上会出现可点击、可复制的胶囊。例：sd.example.gov.cn",
+  "userName": "",
+  "passWord": "",
+  "strategy": "max",
+  "timeout": 15,
+  "log_dir": "out",
+
+  "_动态码说明": "填了 totp_secret 就改用手机动态码登录（30 秒一变，6 位数字）。留空则用上面的静态密码",
+  "totp_secret": "",
+  "_动态码生成": "命令行跑 python web/server.py --gen-totp，会给你密钥和导入链接",
+  "totp_window": 1,
+  "_auth_mode说明": "totp=只认动态码（默认）；password=只认静态密码；both=两个都认",
+  "auth_mode": ""
+}
