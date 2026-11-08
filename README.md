@@ -323,6 +323,5 @@ Docker 部署时全部通过 `environment` 配：
 [MIT](LICENSE)
 
 <div align="center">
-<sub>如果这个项目帮你省下一个下午，点个 ⭐ 吧</sub>
-<sub>整个项目由AI生成</sub>
+<sub>如果这个项目帮你省下一个下午，点个 ⭐ 吧 整个项目由AI生成</sub>
 </div>
